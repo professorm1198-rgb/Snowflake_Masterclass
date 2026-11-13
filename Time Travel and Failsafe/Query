@@ -1,0 +1,135 @@
+-- =====================================================
+-- CREATE EMPLOYEE TABLE
+-- =====================================================
+
+CREATE OR REPLACE TABLE EMPLOYEE (
+    EMPLOYEE_ID INT,
+    EMPLOYEE_NAME VARCHAR(100),
+    DEPARTMENT VARCHAR(50)
+);
+
+
+-- =====================================================
+-- INSERT 10 RECORDS
+-- =====================================================
+
+INSERT INTO EMPLOYEE VALUES
+(1, 'Rahul', 'IT'),
+(2, 'Priya', 'HR'),
+(3, 'Amit', 'Finance'),
+(4, 'Neha', 'Sales'),
+(5, 'Karan', 'Marketing'),
+(6, 'Raj', 'IT'),
+(7, 'Simran', 'HR'),
+(8, 'Vikram', 'Finance'),
+(9, 'Pooja', 'Sales'),
+(10, 'Arjun', 'Marketing');
+
+SELECT * FROM EMPLOYEE;
+
+
+
+-- =====================================================
+-- UPDATE EMPLOYEE RECORD
+-- =====================================================
+
+SELECT CURRENT_TIMESTAMP();--2026-11-01 05:02:33.318 -0800
+
+UPDATE EMPLOYEE
+SET DEPARTMENT = 'IT'
+WHERE EMPLOYEE_ID = 2;
+
+-- Get UPDATE query ID
+SELECT LAST_QUERY_ID();--01c81ece-0103-ca18-001e-1de7006cffba
+
+SELECT * FROM EMPLOYEE;
+
+
+-- =====================================================
+-- METHOD 1: TIME TRAVEL USING OFFSET
+-- =====================================================
+
+SELECT *
+FROM EMPLOYEE
+AT (OFFSET => -120);
+
+
+-- =====================================================
+-- METHOD 2: TIME TRAVEL USING TIMESTAMP
+-- =====================================================
+
+-- add with an actual timestamp recorded before UPDATE.
+
+SELECT *
+FROM EMPLOYEE
+before (
+    TIMESTAMP => '2026-11-01 05:02:33.318 -0800'::TIMESTAMP_LTZ 
+);
+
+-- =====================================================
+-- METHOD 3: TIME TRAVEL USING STATEMENT
+-- =====================================================
+
+-- Replace with the actual UPDATE query ID.
+
+-- Data before UPDATE
+
+SELECT *
+FROM EMPLOYEE
+BEFORE (STATEMENT => '01c81ece-0103-ca18-001e-1de7006cffba');
+
+-- Data after UPDATE
+
+SELECT *
+FROM EMPLOYEE
+AT (STATEMENT => '01c81ece-0103-ca18-001e-1de7006cffba');
+
+
+-- =====================================================
+-- CREATE HISTORICAL CLONE
+-- =====================================================
+
+-- Create a clone containing data before UPDATE.
+
+CREATE transient TABLE EMPLOYEE_BACKUP
+CLONE EMPLOYEE
+BEFORE (STATEMENT => '01c81ece-0103-ca18-001e-1de7006cffba');
+
+-- Verify historical clone
+
+SELECT * FROM EMPLOYEE_BACKUP;
+
+
+-- =====================================================
+-- DROP EMPLOYEE TABLE
+-- =====================================================
+
+DROP TABLE EMPLOYEE;
+
+
+-- =====================================================
+-- UNDROP EMPLOYEE TABLE
+-- =====================================================
+
+UNDROP TABLE EMPLOYEE;
+
+-- Verify recovered table
+
+SELECT * FROM EMPLOYEE;
+
+-- =====================================================
+-- CHECK TIME TRAVEL RETENTION PERIOD
+-- =====================================================
+
+SHOW PARAMETERS LIKE 'DATA_RETENTION_TIME_IN_DAYS'
+IN TABLE EMPLOYEE;
+
+-- =====================================================
+-- ALTER TIME TRAVEL RETENTION PERIOD
+-- =====================================================
+
+
+ALTER TABLE EMPLOYEE
+SET DATA_RETENTION_TIME_IN_DAYS = 2
+
+
